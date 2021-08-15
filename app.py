@@ -21,7 +21,6 @@ if(path.exists('bot.env')):
 
 else: 
     Discord_bot_token = str(os.environ['discord_bot_token'])
-    miner_ip = str(os.environ['miner_ip'])
 
 
 @client.event

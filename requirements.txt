@@ -1,0 +1,5 @@
+discord.py
+beautifulsoup4
+lxml
+discord-py-slash-command
+python-dotenv

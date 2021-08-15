@@ -1,12 +1,28 @@
 import datetime
 import urllib.request
 import discord
-import settings
 from discord.ext import commands, tasks
 from bs4 import BeautifulSoup
+import os  
+from os import environ, path
+from dotenv import load_dotenv
 
-client = commands.Bot(command_prefix = '%')
+client = commands.Bot()
 laststatus = -1
+
+if(path.exists('bot.env')):
+    try:
+        load_dotenv(dotenv_path='bot.env')
+        # settings
+        Discord_bot_token = environ.get('discord_bot_token')            
+        miner_ip = environ.get('miner_ip')
+    except Exception as e:
+        pass
+
+else: 
+    Discord_bot_token = str(os.environ['discord_bot_token'])
+    miner_ip = str(os.environ['miner_ip'])
+
 
 @client.event
 async def on_ready():

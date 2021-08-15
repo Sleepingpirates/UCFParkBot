@@ -1,28 +1,34 @@
 import datetime
 import urllib.request
-import discord
+import discord 
 from discord.ext import commands, tasks
 from bs4 import BeautifulSoup
 import os  
 from os import environ, path
 from dotenv import load_dotenv
+from discord_slash import SlashCommand, SlashContext
 
-client = commands.Bot()
+intents = discord.Intents.default()
+intents.members = True
+client = commands.Bot(command_prefix="%", intents = intents)
+slash = SlashCommand(client, sync_commands=True)
 laststatus = -1
 
 if(path.exists('bot.env')):
     try:
         load_dotenv(dotenv_path='bot.env')
         # settings
-        Discord_bot_token = environ.get('discord_bot_token')            
-        miner_ip = environ.get('miner_ip')
+        Discord_bot_token = environ.get('discord_bot_token')
+        guilds = environ.get('guild_id')
     except Exception as e:
         pass
 
 else: 
     Discord_bot_token = str(os.environ['discord_bot_token'])
+    guilds = str(os.environ['guild_id'])
 
-
+guilds = list(guilds.split(','))
+guilds = list(map(int, guilds))
 @client.event
 async def on_ready():
     update_status.start()
@@ -74,8 +80,8 @@ async def update_status():
 async def ping(ctx):
     await ctx.send(f'Pong! {round(client.latency * 1000)}ms')
 
-@client.command(aliases=['free', 'spot', 'space', 'full'])
-async def spots(ctx):
+@slash.slash(name="park", guild_ids=guilds)
+async def park(ctx: SlashContext):
     debug = False
 
     currtime = datetime.datetime.now()
@@ -97,19 +103,17 @@ async def spots(ctx):
             if debug:
                 print("Excluded string: \"" + item.string + "\"")
 
-    message = (
-        f'```UCF PARK*cough*ING STATUS as of {currtime.strftime("%c")}\n'
-        f'Garage A Free Spaces: {scraped_spots[0]}/{total_spots[0]}\t --- {int(float(scraped_spots[0]/total_spots[0]) * 100)}% Free\n'
-        f'Garage B Free Spaces: {scraped_spots[1]}/{total_spots[1]}\t --- {int(float(scraped_spots[1]/total_spots[1]) * 100)}% Free\n'
-        f'Garage C Free Spaces: {scraped_spots[2]}/{total_spots[2]}\t --- {int(float(scraped_spots[2]/total_spots[2]) * 100)}% Free\n'
-        f'Garage D Free Spaces: {scraped_spots[3]}/{total_spots[3]}\t --- {int(float(scraped_spots[3]/total_spots[3]) * 100)}% Free\n'
-        f'Garage H Free Spaces: {scraped_spots[4]}/{total_spots[4]}\t --- {int(float(scraped_spots[4]/total_spots[4]) * 100)}% Free\n'
-        f'Garage I Free Spaces: {scraped_spots[5]}/{total_spots[5]}\t --- {int(float(scraped_spots[5]/total_spots[5]) * 100)}% Free\n'
-        f'   Libra Free Spaces: {scraped_spots[6]}/{total_spots[6]}\t --- {int(float(scraped_spots[6]/total_spots[6]) * 100)}% Free```'
-    )
-    await ctx.send(message)
+    embed1 = discord.Embed(title="UCF Parking Status",description = f'as of {currtime.strftime("%c")}' , color=0x00F500)
+    embed1.add_field(name=f"**Garage A is {int(float(scraped_spots[0]/total_spots[0]) * 100)}% Free:**", value=f'{scraped_spots[0]} Free Spots Out of {total_spots[0]}', inline=False)
+    embed1.add_field(name=f"**Garage B is {int(float(scraped_spots[1]/total_spots[1]) * 100)}% Free:**", value=f'{scraped_spots[1]} Free Spots Out of {total_spots[1]}', inline=False)
+    embed1.add_field(name=f"**Garage C is {int(float(scraped_spots[2]/total_spots[2]) * 100)}% Free:**", value=f'{scraped_spots[2]} Free Spots Out of {total_spots[2]}', inline=False)
+    embed1.add_field(name=f"**Garage D is {int(float(scraped_spots[3]/total_spots[3]) * 100)}% Free:**", value=f'{scraped_spots[3]} Free Spots Out of {total_spots[3]}', inline=False)
+    embed1.add_field(name=f"**Garage H is {int(float(scraped_spots[4]/total_spots[4]) * 100)}% Free:**", value=f'{scraped_spots[4]} Free Spots Out of {total_spots[4]}', inline=False)
+    embed1.add_field(name=f"**Garage I is {int(float(scraped_spots[5]/total_spots[5]) * 100)}% Free:**", value=f'{scraped_spots[5]} Free Spots Out of {total_spots[5]}', inline=False)
+    embed1.add_field(name=f"**Libra is {int(float(scraped_spots[6]/total_spots[6]) * 100)}% Free:**", value=f'{scraped_spots[6]} Free Spots Out of {total_spots[6]}', inline=False)
+    await ctx.send(embed = embed1)
     currtime = datetime.datetime.now()
     print(f'Request honored at {currtime.strftime("%c")} EST')
 
 
-client.run(settings.token)
+client.run(Discord_bot_token)
